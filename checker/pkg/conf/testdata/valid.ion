@@ -1,0 +1,17 @@
+{
+  websites: [
+    {
+      url: "http://foo.org"
+    },
+    {
+      url: "https://duckduckgo.com/search",
+      method: "GET",
+      match_regexp: "duck$"
+    },
+    {
+      url: "http://only-heads.org/foo/bar?quux=1",
+      method: "HEAD",
+      match_regexp: "foobar.*"
+    }
+  ]
+}
