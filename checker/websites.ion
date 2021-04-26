@@ -1,0 +1,11 @@
+{
+  websites: [
+    {
+      url: "https://stackoverflow.com/"
+    },
+    {
+      url: "https://duckduckgo.com",
+      match_regexp: "tracked.*"
+    }
+  ]
+}
