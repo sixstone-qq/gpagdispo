@@ -6,6 +6,9 @@
     {
       url: "https://duckduckgo.com",
       match_regexp: "tracked.*"
+    },
+    {
+      url: "https://www.aiven.io:1234/"
     }
   ]
 }

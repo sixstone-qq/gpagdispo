@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/sixstone-qq/gpagdispo/checker/pkg/conf"
 	"github.com/sixstone-qq/gpagdispo/checker/pkg/domain"
+	chttp "github.com/sixstone-qq/gpagdispo/checker/pkg/http"
 )
 
 type config struct {
@@ -30,11 +32,11 @@ func main() {
 		log.Fatal().Err(err).Msg("can't load file")
 	}
 
+	// TODO: Set best client params
+	fetcher := &chttp.Fetcher{Client: http.DefaultClient}
+
 	checker := &domain.Checker{
-		FetchWebsiteResult: func(ctx context.Context, wp domain.WebsiteParams) (*domain.WebsiteResult, error) {
-			// TOOD
-			return nil, nil
-		},
+		FetchWebsiteResult: fetcher.FetchWebsiteResult,
 	}
 
 	// Gracefully shutdown

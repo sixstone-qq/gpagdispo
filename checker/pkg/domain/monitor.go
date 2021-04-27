@@ -25,7 +25,7 @@ func (c *Checker) Monitor(ctx context.Context, websites []WebsiteParams, tick ti
 	wg.Add(len(websites))
 	for i := 0; i < len(websites); i++ {
 		work[i] = make(chan WebsiteParams)
-		go c.worker(i, work[i], &wg)
+		go c.worker(i, work[i], &wg, tick)
 	}
 
 loop:
@@ -55,12 +55,14 @@ loop:
 }
 
 // worker does the work of perform the HTTP request and produce the events as goroutine.
-func (c *Checker) worker(id int, work <-chan WebsiteParams, wg *sync.WaitGroup) {
+func (c *Checker) worker(id int, work <-chan WebsiteParams, wg *sync.WaitGroup, maxProcessingTime time.Duration) {
 	defer wg.Done()
 
 	for wp := range work {
 		log.Log().Int("id", id).Msgf("%+v", wp)
-		wr, err := c.FetchWebsiteResult(context.TODO(), wp)
+		ctx, cancel := context.WithTimeout(context.Background(), maxProcessingTime)
+		wr, err := c.FetchWebsiteResult(ctx, wp)
+		cancel()
 		log.Log().Err(err).Msgf("Result: %+v", wr)
 	}
 }
