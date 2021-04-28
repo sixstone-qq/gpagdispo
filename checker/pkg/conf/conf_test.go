@@ -26,16 +26,19 @@ func TestLoadWebsiteParams(t *testing.T) {
 			{
 				URL:    url.URL{Scheme: "http", Host: "foo.org"},
 				Method: domain.HTTPMethodGet,
+				ID:     "f068f4ce3120b1e19291215f6e3bab81c6d9aaaf",
 			},
 			{
 				URL:         url.URL{Scheme: "https", Host: "duckduckgo.com", Path: "/search"},
 				Method:      domain.HTTPMethodGet,
 				MatchRegexp: regexp.MustCompile("duck$"),
+				ID:          "fe1a74a16f4978b6b2dea8c3496ae609d3a49ae7",
 			},
 			{
 				URL:         url.URL{Scheme: "http", Host: "only-heads.org", Path: "/foo/bar", RawQuery: "quux=1"},
 				Method:      domain.HTTPMethodHead,
 				MatchRegexp: regexp.MustCompile("foobar.*"),
+				ID:          "32993fbbda453fc52d42b9d74a84d3fe625b6183",
 			},
 		}
 

@@ -14,6 +14,7 @@ const delayTicks = 2
 // Checker is in charge of checks website availability
 type Checker struct {
 	FetchWebsiteResult func(ctx context.Context, wp WebsiteParams) (*WebsiteResult, error)
+	ProduceResult      func(wp WebsiteParams, wr WebsiteResult) error
 }
 
 // Monitor periodically checks websites indefinitely
@@ -62,7 +63,16 @@ func (c *Checker) worker(id int, work <-chan WebsiteParams, wg *sync.WaitGroup, 
 		log.Log().Int("id", id).Msgf("%+v", wp)
 		ctx, cancel := context.WithTimeout(context.Background(), maxProcessingTime)
 		wr, err := c.FetchWebsiteResult(ctx, wp)
+		if err != nil {
+			log.Error().Err(err).Str("url", wp.URL.String()).Msg("can't fetch result")
+			cancel()
+			continue
+		}
+		err = c.ProduceResult(wp, *wr)
 		cancel()
-		log.Log().Err(err).Msgf("Result: %+v", wr)
+		if err != nil {
+			log.Error().Err(err).Msg("can't produce result")
+		}
+		log.Log().Msgf("%+v check: %+v", wp, wr)
 	}
 }

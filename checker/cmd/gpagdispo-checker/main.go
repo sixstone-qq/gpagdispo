@@ -14,10 +14,12 @@ import (
 	"github.com/sixstone-qq/gpagdispo/checker/pkg/conf"
 	"github.com/sixstone-qq/gpagdispo/checker/pkg/domain"
 	chttp "github.com/sixstone-qq/gpagdispo/checker/pkg/http"
+	"github.com/sixstone-qq/gpagdispo/checker/pkg/kafka"
 )
 
 type config struct {
-	ConfigFilePath string `env:"CONFIG_PATH" envDefault:"websites.ion"`
+	ConfigFilePath string   `env:"CONFIG_PATH" envDefault:"websites.ion"`
+	KafkaBrokers   []string `env:"KAFKA_ADDRS" envDefault:"localhost:9092"`
 }
 
 func main() {
@@ -35,8 +37,14 @@ func main() {
 	// TODO: Set best client params
 	fetcher := &chttp.Fetcher{Client: http.DefaultClient}
 
+	producer, err := kafka.NewProducer(cfg.KafkaBrokers)
+	if err != nil {
+		log.Fatal().Err(err).Msg("can't create Kafka producer")
+	}
+
 	checker := &domain.Checker{
 		FetchWebsiteResult: fetcher.FetchWebsiteResult,
+		ProduceResult:      producer.Produce,
 	}
 
 	// Gracefully shutdown

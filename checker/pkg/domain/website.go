@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -27,9 +29,10 @@ func NewHTTPMethod(in string) (HTTPMethod, error) {
 
 // WebsiteParams defines the website parameters to check against
 type WebsiteParams struct {
-	URL         url.URL
-	Method      HTTPMethod
-	MatchRegexp *regexp.Regexp
+	ID          string         `json:"id"`
+	URL         url.URL        `json:"-"`
+	Method      HTTPMethod     `json:"method"`
+	MatchRegexp *regexp.Regexp `json:"-"`
 }
 
 // NewWebsiteParams creates a new WebsiteParmams parsing input strings.
@@ -65,5 +68,29 @@ func NewWebsiteParams(rawURL, rawMethod, rawRegexp string) (*WebsiteParams, erro
 		}
 	}
 
+	// Generate the ID based on struct fields
+	wp.ID = fmt.Sprintf("%x", sha1.Sum([]byte(wp.URL.String()+string(wp.Method)+rawRegexp)))
+
 	return wp, nil
+}
+
+// MarshalJSON provides custom JSON marshalling.
+func (wp *WebsiteParams) MarshalJSON() ([]byte, error) {
+	var matchRegexp *string
+	if wp.MatchRegexp != nil {
+		st := wp.MatchRegexp.String()
+		matchRegexp = &st
+	}
+
+	// Explained at http://choly.ca/post/go-json-marshalling/
+	type Alias WebsiteParams
+	return json.Marshal(&struct {
+		URL         string  `json:"url"`
+		MatchRegexp *string `json:"match_regexp"`
+		*Alias
+	}{
+		URL:         wp.URL.String(),
+		MatchRegexp: matchRegexp,
+		Alias:       (*Alias)(wp),
+	})
 }
