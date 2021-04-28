@@ -11,6 +11,7 @@ import (
 
 	qt "github.com/frankban/quicktest"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 
 	"github.com/sixstone-qq/gpagdispo/checker/pkg/domain"
 )
@@ -29,7 +30,11 @@ func TestFetchWebsiteResult(t *testing.T) {
 
 			wr, err := fetcher.FetchWebsiteResult(context.TODO(), *wp)
 			c.Assert(err, qt.IsNil)
-			c.Assert(wr, websiteResultEquals, &domain.WebsiteResult{Status: http.StatusOK, Elapsed: time.Second})
+			c.Assert(wr,
+				websiteResultEquals,
+				&domain.WebsiteResult{At: time.Now().UTC(),
+					Status:  http.StatusOK,
+					Elapsed: time.Second})
 		})
 
 		c.Run("Regexp", func(c *qt.C) {
@@ -39,7 +44,12 @@ func TestFetchWebsiteResult(t *testing.T) {
 			wr, err := fetcher.FetchWebsiteResult(context.TODO(), *wp)
 			c.Assert(err, qt.IsNil)
 			yeah := true
-			c.Assert(wr, websiteResultEquals, &domain.WebsiteResult{Status: http.StatusOK, Matched: &yeah, Elapsed: time.Second})
+			c.Assert(wr,
+				websiteResultEquals,
+				&domain.WebsiteResult{At: time.Now().UTC(),
+					Status:  http.StatusOK,
+					Matched: &yeah,
+					Elapsed: time.Second})
 
 			wp, err = domain.NewWebsiteParams(svr.URL, "", "not match")
 			c.Assert(err, qt.IsNil)
@@ -47,7 +57,12 @@ func TestFetchWebsiteResult(t *testing.T) {
 			wr, err = fetcher.FetchWebsiteResult(context.TODO(), *wp)
 			c.Assert(err, qt.IsNil)
 			yeah = false
-			c.Assert(wr, websiteResultEquals, &domain.WebsiteResult{Status: http.StatusOK, Matched: &yeah, Elapsed: time.Second})
+			c.Assert(wr,
+				websiteResultEquals,
+				&domain.WebsiteResult{At: time.Now().UTC(),
+					Status:  http.StatusOK,
+					Matched: &yeah,
+					Elapsed: time.Second})
 		})
 	})
 
@@ -64,7 +79,11 @@ func TestFetchWebsiteResult(t *testing.T) {
 
 		wr, err := fetcher.FetchWebsiteResult(ctx, *wp)
 		c.Assert(err, qt.IsNil)
-		c.Assert(wr, websiteResultEquals, &domain.WebsiteResult{Unreachable: true, Elapsed: time.Second})
+		c.Assert(wr,
+			websiteResultEquals,
+			&domain.WebsiteResult{At: time.Now().UTC(),
+				Unreachable: true,
+				Elapsed:     time.Second})
 	})
 }
 
@@ -72,6 +91,7 @@ var websiteResultEquals = qt.CmpEquals(
 	cmp.Comparer(func(x, y time.Duration) bool {
 		return math.Abs(float64(x-y)) < float64(time.Second) && x != 0 && y != 0
 	}),
+	cmpopts.EquateApproxTime(time.Second),
 )
 
 // Fake server

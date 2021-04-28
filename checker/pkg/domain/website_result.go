@@ -10,4 +10,6 @@ type WebsiteResult struct {
 	Matched *bool
 	// Unreachable means the website check timed out.
 	Unreachable bool
+	// At determines when the result was recorded
+	At time.Time
 }

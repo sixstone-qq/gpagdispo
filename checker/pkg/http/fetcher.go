@@ -29,6 +29,7 @@ func (f *Fetcher) FetchWebsiteResult(ctx context.Context, wp domain.WebsiteParam
 			return &domain.WebsiteResult{
 				Elapsed:     elapsed,
 				Unreachable: true,
+				At:          time.Now().UTC(),
 			}, nil
 		}
 		return nil, err
@@ -48,6 +49,7 @@ func (f *Fetcher) FetchWebsiteResult(ctx context.Context, wp domain.WebsiteParam
 		Status:  resp.StatusCode,
 		Elapsed: elapsed,
 		Matched: matched,
+		At:      time.Now().UTC(),
 	}, nil
 
 }
