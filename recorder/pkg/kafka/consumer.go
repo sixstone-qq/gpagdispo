@@ -2,25 +2,33 @@ package kafka
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
 
 	"github.com/Shopify/sarama"
 	"github.com/rs/zerolog/log"
+
+	"github.com/sixstone-qq/gpagdispo/recorder/pkg/domain"
 )
 
 const topic = "website.monitor"
+
+type HandleFn func(ctx context.Context, wp domain.WebsiteParams, wr domain.WebsiteResult) error
 
 // Consumer consumes website checks from a Kafka topic
 type Consumer struct {
 	kfkConsumerGroup sarama.ConsumerGroup
 	handler          sarama.ConsumerGroupHandler
 	wg               sync.WaitGroup
+
+	// HandleMessage will be called upon every consumption
+	HandleMessage HandleFn
 }
 
 // NewConsumer creates the consumer group from the given addresses
-func NewConsumer(addrs []string) (*Consumer, error) {
+func NewConsumer(addrs []string, handleFn HandleFn) (*Consumer, error) {
 	cfg := sarama.NewConfig()
 	cfg.Version = sarama.V2_0_0_0
 	cfg.Consumer.Return.Errors = true
@@ -33,8 +41,9 @@ func NewConsumer(addrs []string) (*Consumer, error) {
 
 	c := &Consumer{
 		kfkConsumerGroup: consumer,
-		handler:          new(handler),
+		HandleMessage:    handleFn,
 	}
+	c.handler = &handler{consumer: c}
 
 	// Track errors
 	c.wg.Add(1)
@@ -75,11 +84,13 @@ func (c *Consumer) Close() error {
 	return err
 }
 
-// Compile-time check around interface implementatoin
+// Compile-time check around interface implementatoin1
 var _ sarama.ConsumerGroupHandler = (*handler)(nil)
 
 // handler implements sarama.ConsumerGroupHandler interface to perform the actions
-type handler struct{}
+type handler struct {
+	consumer *Consumer
+}
 
 // Setup is run at the beginning of a new session, before ConsumeClaim.
 func (h *handler) Setup(sess sarama.ConsumerGroupSession) error {
@@ -103,7 +114,25 @@ loop:
 		case msg := <-claim.Messages():
 			log.Log().Int32("partition", msg.Partition).Int64("offset", msg.Offset).
 				Str("key", string(msg.Key)).Str("body", string(msg.Value)).Msg("consumed message")
+
+			if h.consumer.HandleMessage != nil {
+
+				var check payload
+				err := json.Unmarshal(msg.Value, &check)
+				if err != nil {
+					// Log and continue (don't retry)
+					log.Error().Err(err).Msg("unable to unmarshal message")
+				}
+
+				err = h.consumer.HandleMessage(ctx, check.WebsiteParams, check.WebsiteResult)
+				if err != nil {
+					// Log and continue (don't retry)
+					log.Error().Err(err).Msg("error handling message")
+				}
+			}
+
 			sess.MarkMessage(msg, "")
+
 		case <-ctx.Done():
 			err := ctx.Err()
 			if err != nil {
@@ -114,4 +143,9 @@ loop:
 	}
 
 	return nil
+}
+
+type payload struct {
+	WebsiteParams domain.WebsiteParams `json:"website"`
+	WebsiteResult domain.WebsiteResult `json:"result"`
 }
