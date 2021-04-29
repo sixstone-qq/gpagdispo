@@ -2,6 +2,7 @@ package pg
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	migrate "github.com/golang-migrate/migrate/v4"
@@ -29,7 +30,7 @@ func NewStore(dsn string) (*Store, error) {
 	return &Store{DB: db}, nil
 }
 
-// CreateSchema creates the Database Schema in the desired DB
+// CreateSchema creates the Database Schema in the desired DB.
 func (s *Store) CreateSchema(sourcePath string) error {
 	m, err := s.migrate(sourcePath)
 	if err != nil {
@@ -38,7 +39,9 @@ func (s *Store) CreateSchema(sourcePath string) error {
 
 	// Migrate all the way up
 	if err := m.Up(); err != nil {
-		return fmt.Errorf("can't perform up migrations: %w", err)
+		if !errors.Is(err, migrate.ErrNoChange) {
+			return fmt.Errorf("can't perform up migrations: %w", err)
+		}
 	}
 
 	return nil
