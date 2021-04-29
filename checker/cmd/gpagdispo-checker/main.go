@@ -34,6 +34,11 @@ func main() {
 		log.Fatal().Err(err).Msg("can't load file")
 	}
 
+	err = kafka.CreateTopic(cfg.KafkaBrokers)
+	if err != nil {
+		log.Fatal().Err(err).Msg("can't create topic")
+	}
+
 	// TODO: Set best client params
 	fetcher := &chttp.Fetcher{Client: http.DefaultClient}
 

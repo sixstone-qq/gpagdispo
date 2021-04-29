@@ -11,7 +11,7 @@ import (
 	"github.com/sixstone-qq/gpagdispo/checker/pkg/domain"
 )
 
-const topic = "website.monitor"
+const websiteTopic = "website.monitor"
 
 // Producer generates the website checks into a Kafka topic
 type Producer struct {
@@ -26,10 +26,7 @@ type payload struct {
 
 // NewProducer handles the creation of the async producers and associated GoRoutines
 func NewProducer(addrs []string) (*Producer, error) {
-	cfg := sarama.NewConfig()
-	cfg.Version = sarama.V2_0_0_0
-
-	producer, err := sarama.NewAsyncProducer(addrs, cfg)
+	producer, err := sarama.NewAsyncProducer(addrs, config())
 	if err != nil {
 		return nil, fmt.Errorf("can't create async producer: %w", err)
 	}
@@ -60,7 +57,7 @@ func (p *Producer) Produce(wp domain.WebsiteParams, wr domain.WebsiteResult) err
 	}
 
 	message := &sarama.ProducerMessage{
-		Topic: topic,
+		Topic: websiteTopic,
 		Key:   sarama.StringEncoder(wp.ID),
 		Value: sarama.ByteEncoder(blob),
 	}
