@@ -13,7 +13,7 @@ type WebsiteParams struct {
 // WebsiteResult defines the result of a website check
 type WebsiteResult struct {
 	Elapsed time.Duration `json:"elapsed"`
-	Status  int           `json:"status"`
+	Status  *int          `json:"status"`
 	// Matched optionally says if the body response matched the regular expression if provided.
 	Matched *bool `json:"matched" `
 	// Unreachable means the website check timed out.

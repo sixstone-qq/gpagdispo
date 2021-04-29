@@ -37,9 +37,10 @@ func TestInsertWebsiteResult(t *testing.T) {
 		URL:    "http://foo.org",
 		Method: "GET",
 	}
+	ok := http.StatusOK
 	wr := domain.WebsiteResult{
 		Elapsed: time.Second,
-		Status:  http.StatusOK,
+		Status:  &ok,
 		At:      time.Now().UTC(),
 	}
 
@@ -62,7 +63,7 @@ func TestInsertWebsiteResult(t *testing.T) {
 		c.Assert(rec, qt.CmpEquals(cmpopts.EquateApproxTime(time.Second)), websiteResultRecord{
 			ID:          "id1",
 			Elapsed:     1.0,
-			Status:      http.StatusOK,
+			Status:      sql.NullInt32{Valid: true, Int32: http.StatusOK},
 			Matched:     sql.NullBool{},
 			Unreachable: false,
 			At:          time.Now().UTC()})
@@ -100,10 +101,10 @@ func TestInsertWebsiteResult(t *testing.T) {
 }
 
 type websiteResultRecord struct {
-	ID          string       `db:"website_id"`
-	Elapsed     float64      `db:"elapsed_time"`
-	Status      int          `db:"status"`
-	Matched     sql.NullBool `db:"matched"`
-	Unreachable bool         `db:"unreachable"`
-	At          time.Time    `db:"at"`
+	ID          string        `db:"website_id"`
+	Elapsed     float64       `db:"elapsed_time"`
+	Status      sql.NullInt32 `db:"status"`
+	Matched     sql.NullBool  `db:"matched"`
+	Unreachable bool          `db:"unreachable"`
+	At          time.Time     `db:"at"`
 }

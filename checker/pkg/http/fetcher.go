@@ -46,7 +46,7 @@ func (f *Fetcher) FetchWebsiteResult(ctx context.Context, wp domain.WebsiteParam
 	}
 
 	return &domain.WebsiteResult{
-		Status:  resp.StatusCode,
+		Status:  &resp.StatusCode,
 		Elapsed: elapsed,
 		Matched: matched,
 		At:      time.Now().UTC(),

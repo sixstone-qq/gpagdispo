@@ -16,6 +16,8 @@ import (
 	"github.com/sixstone-qq/gpagdispo/checker/pkg/domain"
 )
 
+var ok = http.StatusOK
+
 func TestFetchWebsiteResult(t *testing.T) {
 	c := qt.New(t)
 	fetcher := &Fetcher{Client: http.DefaultClient}
@@ -33,7 +35,7 @@ func TestFetchWebsiteResult(t *testing.T) {
 			c.Assert(wr,
 				websiteResultEquals,
 				&domain.WebsiteResult{At: time.Now().UTC(),
-					Status:  http.StatusOK,
+					Status:  &ok,
 					Elapsed: time.Second})
 		})
 
@@ -47,7 +49,7 @@ func TestFetchWebsiteResult(t *testing.T) {
 			c.Assert(wr,
 				websiteResultEquals,
 				&domain.WebsiteResult{At: time.Now().UTC(),
-					Status:  http.StatusOK,
+					Status:  &ok,
 					Matched: &yeah,
 					Elapsed: time.Second})
 
@@ -60,7 +62,7 @@ func TestFetchWebsiteResult(t *testing.T) {
 			c.Assert(wr,
 				websiteResultEquals,
 				&domain.WebsiteResult{At: time.Now().UTC(),
-					Status:  http.StatusOK,
+					Status:  &ok,
 					Matched: &yeah,
 					Elapsed: time.Second})
 		})
