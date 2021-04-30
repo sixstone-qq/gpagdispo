@@ -18,7 +18,7 @@ type config struct {
 	KafkaCertFile string   `env:"KAFKA_CERT_FILE"`
 	KafkaKeyFile  string   `env:"KAFKA_KEY_FILE"`
 	KafkaCAFile   string   `env:"KAFKA_CA_FILE"`
-	PostgreSQLDSN string   `env:"POSTGRESQL_DSN" envDefault:"postgres://postgres@localhost/website?sslmode=disable"`
+	PostgreSQLDSN string   `env:"POSTGRESQL_DSN" envDefault:"postgres://postgres@localhost/website_monitor?sslmode=disable"`
 }
 
 func main() {
