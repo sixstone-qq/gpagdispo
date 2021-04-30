@@ -82,5 +82,7 @@ jobs:
       - name: ShellCheck
         uses: ludeeus/action-shellcheck@1.1.0
         with:
-          scandir: ./e2e-test
+          # this way only find additional files
+          scandir: ./.github
           severity: error
+          additional_files: ./e2e-test/run.sh
