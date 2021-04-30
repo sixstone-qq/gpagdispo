@@ -28,13 +28,15 @@ type Consumer struct {
 }
 
 // NewConsumer creates the consumer group from the given addresses
-func NewConsumer(addrs []string, handleFn HandleFn) (*Consumer, error) {
-	cfg := sarama.NewConfig()
-	cfg.Version = sarama.V2_0_0_0
-	cfg.Consumer.Return.Errors = true
-	cfg.Consumer.Offsets.Initial = sarama.OffsetOldest
+func NewConsumer(addrs []string, cfg Config, handleFn HandleFn) (*Consumer, error) {
+	saramaCfg, err := cfg.toSaramaConfig()
+	if err != nil {
+		return nil, fmt.Errorf("can't create config: %w", err)
+	}
+	saramaCfg.Consumer.Return.Errors = true
+	saramaCfg.Consumer.Offsets.Initial = sarama.OffsetOldest
 
-	consumer, err := sarama.NewConsumerGroup(addrs, "website-monitor-1", cfg)
+	consumer, err := sarama.NewConsumerGroup(addrs, "website-monitor-1", saramaCfg)
 	if err != nil {
 		return nil, fmt.Errorf("can't create consumer: %w", err)
 	}

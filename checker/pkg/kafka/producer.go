@@ -25,8 +25,13 @@ type payload struct {
 }
 
 // NewProducer handles the creation of the async producers and associated GoRoutines
-func NewProducer(addrs []string) (*Producer, error) {
-	producer, err := sarama.NewAsyncProducer(addrs, config())
+func NewProducer(addrs []string, cfg Config) (*Producer, error) {
+	saramaCfg, err := cfg.toSaramaConfig()
+	if err != nil {
+		return nil, fmt.Errorf("can't create config: %w", err)
+	}
+
+	producer, err := sarama.NewAsyncProducer(addrs, saramaCfg)
 	if err != nil {
 		return nil, fmt.Errorf("can't create async producer: %w", err)
 	}

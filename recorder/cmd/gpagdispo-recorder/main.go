@@ -15,6 +15,9 @@ import (
 
 type config struct {
 	KafkaBrokers  []string `env:"KAFKA_ADDRS" envDefault:"localhost:9092"`
+	KafkaCertFile string   `env:"KAFKA_CERT_FILE"`
+	KafkaKeyFile  string   `env:"KAFKA_KEY_FILE"`
+	KafkaCAFile   string   `env:"KAFKA_CA_FILE"`
 	PostgreSQLDSN string   `env:"POSTGRESQL_DSN" envDefault:"postgres://postgres@localhost/website?sslmode=disable"`
 }
 
@@ -35,7 +38,12 @@ func main() {
 		log.Fatal().Err(err).Msg("can't create DB schema")
 	}
 
-	consumer, err := kafka.NewConsumer(cfg.KafkaBrokers, s.InsertWebsiteResult)
+	kafkaCfg := kafka.Config{}
+	kafkaCfg.TLS.CAFile = cfg.KafkaCAFile
+	kafkaCfg.TLS.KeyFile = cfg.KafkaKeyFile
+	kafkaCfg.TLS.CertFile = cfg.KafkaCertFile
+
+	consumer, err := kafka.NewConsumer(cfg.KafkaBrokers, kafkaCfg, s.InsertWebsiteResult)
 	if err != nil {
 		log.Fatal().Err(err).Msg("can't create Kafka consumer")
 	}

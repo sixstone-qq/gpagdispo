@@ -8,8 +8,13 @@ import (
 )
 
 // CreateTopic creates Kafka topic to produces website checks onto if it does not exist.
-func CreateTopic(addrs []string) error {
-	admin, err := sarama.NewClusterAdmin(addrs, config())
+func CreateTopic(addrs []string, cfg Config) error {
+	saramaCfg, err := cfg.toSaramaConfig()
+	if err != nil {
+		return fmt.Errorf("can't create config: %w", err)
+	}
+
+	admin, err := sarama.NewClusterAdmin(addrs, saramaCfg)
 	if err != nil {
 		return fmt.Errorf("can't create cluster admin: %w", err)
 	}
@@ -32,12 +37,4 @@ func CreateTopic(addrs []string) error {
 	}
 
 	return nil
-}
-
-// config returns the configuration for Kafka connection
-func config() *sarama.Config {
-	cfg := sarama.NewConfig()
-	cfg.Version = sarama.V2_0_0_0
-
-	return cfg
 }

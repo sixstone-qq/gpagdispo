@@ -20,6 +20,9 @@ import (
 type config struct {
 	ConfigFilePath string   `env:"CONFIG_PATH" envDefault:"websites.ion"`
 	KafkaBrokers   []string `env:"KAFKA_ADDRS" envDefault:"localhost:9092"`
+	KafkaCertFile  string   `env:"KAFKA_CERT_FILE"`
+	KafkaKeyFile   string   `env:"KAFKA_KEY_FILE"`
+	KafkaCAFile    string   `env:"KAFKA_CA_FILE"`
 }
 
 func main() {
@@ -34,7 +37,12 @@ func main() {
 		log.Fatal().Err(err).Msg("can't load file")
 	}
 
-	err = kafka.CreateTopic(cfg.KafkaBrokers)
+	kafkaCfg := kafka.Config{}
+	kafkaCfg.TLS.CAFile = cfg.KafkaCAFile
+	kafkaCfg.TLS.KeyFile = cfg.KafkaKeyFile
+	kafkaCfg.TLS.CertFile = cfg.KafkaCertFile
+
+	err = kafka.CreateTopic(cfg.KafkaBrokers, kafkaCfg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("can't create topic")
 	}
@@ -42,7 +50,7 @@ func main() {
 	// TODO: Set best client params
 	fetcher := &chttp.Fetcher{Client: http.DefaultClient}
 
-	producer, err := kafka.NewProducer(cfg.KafkaBrokers)
+	producer, err := kafka.NewProducer(cfg.KafkaBrokers, kafkaCfg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("can't create Kafka producer")
 	}
