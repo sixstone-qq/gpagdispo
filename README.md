@@ -64,6 +64,11 @@ make test
 make integration-test
 ```
 
+### CI
+
+We are using [Github Actions](.github/workflows/test.yml) for
+running the tests and linting in parallel.
+
 ## Linting
 
 [golangci-lint](https://golangci-lint.run) is used for linting the Go

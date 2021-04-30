@@ -1,0 +1,85 @@
+# This workflow will build Go apps, run tests and lint.
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    services:
+      zookeeper:
+        image: confluentinc/cp-zookeeper:5.5.3
+        ports:
+          - 2181:2181
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
+      kafka:
+        image: confluentinc/cp-kafka:5.5.3
+        ports:
+          - 9092:9092
+          - 29092:29092
+        env:
+          KAFKA_BROKER_ID: 1
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+          KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+          KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+          KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+          KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+        options: >-
+          --health-cmd "cub kafka-ready -b localhost:9092 1 10"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 60s
+
+      postgres:
+        # Docker Hub image
+        image: postgres:12
+        ports:
+          - 5432:5432
+        # Provide no password for postgres
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Test
+        run: make test
+        env:
+          KAFKA_ADDRS: 'localhost:9092'
+          POSTGRESQL_DSN: 'postgres://postgres@localhost/postgres?sslmode=disable'
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: golangci-lint on checker
+        uses: golangci/golangci-lint-action@v2.5.2
+        with:
+          working-directory: checker
+      - name: golangci-lint on recorder
+        uses: golangci/golangci-lint-action@v2.5.2
+        with:
+          working-directory: recorder
+      - name: ShellCheck
+        uses: ludeeus/action-shellcheck@1.1.0
+        with:
+          scandir: ./e2e-test
