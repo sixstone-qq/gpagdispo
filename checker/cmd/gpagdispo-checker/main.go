@@ -18,11 +18,12 @@ import (
 )
 
 type config struct {
-	ConfigFilePath string   `env:"CONFIG_PATH" envDefault:"websites.ion"`
-	KafkaBrokers   []string `env:"KAFKA_ADDRS" envDefault:"localhost:9092"`
-	KafkaCertFile  string   `env:"KAFKA_CERT_FILE"`
-	KafkaKeyFile   string   `env:"KAFKA_KEY_FILE"`
-	KafkaCAFile    string   `env:"KAFKA_CA_FILE"`
+	ConfigFilePath string        `env:"CONFIG_PATH" envDefault:"websites.ion"`
+	KafkaBrokers   []string      `env:"KAFKA_ADDRS" envDefault:"localhost:9092"`
+	KafkaCertFile  string        `env:"KAFKA_CERT_FILE"`
+	KafkaKeyFile   string        `env:"KAFKA_KEY_FILE"`
+	KafkaCAFile    string        `env:"KAFKA_CA_FILE"`
+	Tick           time.Duration `env:"TICK_TIME" envDefault:"2s"`
 }
 
 func main() {
@@ -74,5 +75,5 @@ func main() {
 		cancel()
 	}()
 
-	_ = checker.Monitor(ctx, websites, 2*time.Second)
+	_ = checker.Monitor(ctx, websites, cfg.Tick)
 }
