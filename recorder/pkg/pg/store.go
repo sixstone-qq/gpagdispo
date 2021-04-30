@@ -7,10 +7,14 @@ import (
 
 	migrate "github.com/golang-migrate/migrate/v4"
 	migratepg "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"github.com/rs/zerolog/log"
+
+	// Required to read migration files from OS
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+
+	// Required to load PG driver
+	_ "github.com/lib/pq"
 
 	"github.com/sixstone-qq/gpagdispo/recorder/pkg/domain"
 )

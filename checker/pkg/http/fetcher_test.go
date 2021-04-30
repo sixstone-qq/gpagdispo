@@ -23,7 +23,7 @@ func TestFetchWebsiteResult(t *testing.T) {
 	fetcher := &Fetcher{Client: http.DefaultClient}
 
 	c.Run("OK", func(c *qt.C) {
-		svr, _ := NewFakeServer(c)
+		svr, _ := newFakeServer(c)
 		defer svr.Close()
 
 		c.Run("No regexp", func(c *qt.C) {
@@ -69,7 +69,7 @@ func TestFetchWebsiteResult(t *testing.T) {
 	})
 
 	c.Run("Slow", func(c *qt.C) {
-		svr, fs := NewFakeServer(c)
+		svr, fs := newFakeServer(c)
 
 		fs.ProcessingTime = time.Minute
 
@@ -98,7 +98,7 @@ var websiteResultEquals = qt.CmpEquals(
 
 // Fake server
 
-func NewFakeServer(c *qt.C) (*httptest.Server, *fakeServer) {
+func newFakeServer(c *qt.C) (*httptest.Server, *fakeServer) {
 	fs := new(fakeServer)
 	svr := httptest.NewServer(fs)
 	c.Cleanup(svr.Close)
